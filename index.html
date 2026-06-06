@@ -2,235 +2,532 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>広東語動詞クイズ（香港口語）</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>広東語クイズ PRO（基本動詞編）</title>
 
 <style>
-body { font-family: Arial; text-align:center; background:#f5f5f5;}
-.card {
-  width:90%; max-width:350px;
-  margin:30px auto; padding:20px;
-  background:white; border-radius:10px;
-}
-.option {
-  display:block; margin:10px; padding:10px;
-  background:#eee; border-radius:8px;
-}
-.correct { background:#c8f7c5 !important; }
-.wrong { background:#f7c5c5 !important; }
-.jp { font-size:14px; color:#555; }
-.en { font-size:14px; color:#222; }
+  :root {
+    --primary: #4a90e2; /* 動詞編向けにアクティブで知的なブルーに変更 */
+    --primary-bg: #e6f0fa;
+    --success: #34c759;
+    --success-bg: #e3fcef;
+    --error: #ff3b30;
+    --error-bg: #ffebe9;
+    --bg: #f5f5f7;
+    --card-bg: #ffffff;
+    --text-main: #1d1d1f;
+    --text-sub: #86868b;
+    --border: #d2d2d7;
+  }
+
+  * {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body { 
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+    background: var(--bg);
+    margin: 0;
+    padding: 16px;
+    color: var(--text-main);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+  }
+
+  .app-container {
+    width: 100%;
+    max-width: 420px;
+  }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding: 0 4px;
+  }
+
+  h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  .progress {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-sub);
+    background: #e8e8ed;
+    padding: 4px 10px;
+    border-radius: 12px;
+  }
+
+  /* モード切り替えタブ */
+  .mode-switcher {
+    display: flex;
+    background: #e8e8ed;
+    padding: 2px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+  }
+  .mode-btn {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-sub);
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s;
+  }
+  .mode-btn.active {
+    background: var(--card-bg);
+    color: var(--text-main);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  }
+
+  /* メインカード */
+  .card {
+    background: var(--card-bg); 
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.05);
+    transition: transform 0.3s ease;
+  }
+
+  .question-hint {
+    font-size: 13px;
+    color: var(--text-sub);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 6px;
+  }
+
+  .question-word {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--text-main);
+    margin-bottom: 24px;
+    line-height: 1.2;
+  }
+
+  /* 4択選択肢ボタン */
+  .options-container {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .option {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 16px;
+    background: var(--bg); 
+    border-radius: 12px;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-main);
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+    border: 2px solid transparent;
+    text-align: left;
+  }
+
+  .option:active {
+    transform: scale(0.98);
+    background: #e2e2e7;
+  }
+
+  /* 正誤アニメーション */
+  .option.correct { 
+    background: var(--success-bg) !important; 
+    border-color: var(--success);
+    color: #14804a;
+    animation: pop 0.3s ease;
+  }
+  .option.wrong { 
+    background: var(--error-bg) !important; 
+    border-color: var(--error);
+    color: #d1271f;
+    animation: shake 0.3s ease;
+  }
+  .option.disabled {
+    pointer-events: none;
+    opacity: 0.6;
+  }
+  .option.correct.disabled {
+    opacity: 1;
+  }
+
+  @keyframes pop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.03); }
+    100% { transform: scale(1); }
+  }
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    25% { transform: translateX(-6px); }
+    75% { transform: translateX(6px); }
+  }
+
+  /* 結果・解説エリア */
+  .result-wrapper {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease;
+  }
+  .result-wrapper.show {
+    max-height: 320px;
+  }
+
+  #result {
+    margin-top: 20px;
+    background: #fdfdfd;
+    padding: 16px;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+  }
+
+  .result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+  }
+
+  .result-title {
+    font-size: 20px;
+    font-weight: 700;
+  }
+  .jyutping {
+    font-size: 12px;
+    color: var(--primary);
+    background: var(--primary-bg);
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-weight: 600;
+  }
+  .example-box {
+    font-size: 14px;
+    line-height: 1.5;
+    background: var(--bg);
+    padding: 12px;
+    border-radius: 10px;
+  }
+  .btn-audio {
+    background: var(--text-main);
+    color: white;
+    border: none;
+    padding: 8px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* 次へボタン */
+  .btn-next {
+    width: 100%;
+    padding: 16px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 16px;
+    box-shadow: 0 4px 12px rgba(74,144,226,0.3);
+    transition: all 0.2s;
+  }
+  .btn-next:hover {
+    background: #357abd;
+  }
 </style>
 
 </head>
 <body>
 
-<h2>🗣️ 広東語 動詞クイズ（香港口語）</h2>
+<div class="app-container">
+  <header>
+    <h2>🏃 広東語クイズ（基本動詞編）</h2>
+    <div class="progress">Solved: <span id="progress-count">0</span></div>
+  </header>
 
-<div class="card">
-  <h3 id="question"></h3>
-  <div id="options"></div>
-  <div id="result"></div>
-  <button onclick="nextQuestion()">次へ ▶</button>
+  <div class="mode-switcher">
+    <button class="mode-btn active" id="mode-en" onclick="setMode('en')">英語 ➔ 広東語</button>
+    <button class="mode-btn" id="mode-ja" onclick="setMode('ja')">日本語 ➔ 広東語</button>
+  </div>
+
+  <div class="card">
+    <div class="question-hint" id="question-hint">TRANSLATION</div>
+    <div class="question-word" id="question">---</div>
+    
+    <div class="options-container" id="options"></div>
+    
+    <div class="result-wrapper" id="result-wrapper">
+      <div id="result"></div>
+    </div>
+    
+    <button class="btn-next" id="next-btn" onclick="nextQuestion()" style="display:none;">次へ進む</button>
+  </div>
 </div>
 
 <script>
-
 const words = [
+  // 1-10: 超基本動作（移動・視覚・聴覚）
+  { en: "Go", ja: "行く", zh: "去", jyut: "heoi3", ex: "你聽日去邊度呀？", exjyut: "nei5 ting1 jat1 heoi3 bin1 dou6 aa3?", exen: "Where are you going tomorrow?" },
+  { en: "Come", ja: "来る", zh: "黎", jyut: "lai4", ex: "佢幾時黎公司？", exjyut: "keoi5 gei2 si4 lai4 gung1 si1?", exen: "When is he coming to the office?" },
+  { en: "See / Watch / Look", ja: "見る・読む", zh: "睇", jyut: "tai2", ex: "我想睇下份報告。", exjyut: "ngo5 soeng2 tai2 haa5 fan6 bou3 gou3", exen: "I'd like to look at the report." },
+  { en: "Listen / Hear", ja: "聞く", zh: "聽", jyut: "teng1", ex: "你聽唔聽到我講嘢？", exjyut: "nei5 teng1 m4 teng1 dou2 ngo5 gong2 je5?", exen: "Can you hear what I'm saying?" },
+  { en: "Eat", ja: "食べる", zh: "食", jyut: "sik6", ex: "一齊去食晏晝飯啦。", exjyut: "jat1 cai4 heoi3 sik6 aan3 zau3 faan6 laa1", exen: "Let's go eat lunch together." },
+  { en: "Drink", ja: "飲む", zh: "飲", jyut: "jam2", ex: "你想飲啲乜嘢？", exjyut: "nei5 soeng2 jam2 di1 mat1 je5?", exen: "What would you like to drink?" },
+  { en: "Walk", ja: "歩く", zh: "行", jyut: "haang4", ex: "行去地鐵站要五分鐘。", exjyut: "haang4 heoi3 dei6 tit3 zaam6 jiu3 ng5 fan1 zung1", exen: "It takes 5 minutes to walk to the MTR station." },
+  { en: "Run", ja: "走る", zh: "走", jyut: "zau2", ex: "快啲走，如果唔係遲到喇。", exjyut: "faai3 di1 zau2, jyu4 gwo2 m4 hai6 ci4 dou3 laa3", exen: "Run fast, otherwise we'll be late." },
+  { en: "Return / Go back", ja: "戻る・帰る", zh: "返", jyut: "faan1", ex: "我而家返公司。", exjyut: "ngo5 ji4 gaa1 faan1 gung1 si1", exen: "I'm going back to the office now." },
+  { en: "Sit", ja: "座る", zh: "坐", jyut: "co5", ex: "請隨便坐吖。", exjyut: "cing2 ceoi4 bin2 co5 aa1", exen: "Please have a seat anywhere." },
 
+  // 11-20: コミュニケーション（話す・知る・考える）
+  { en: "Say / Speak / Talk", ja: "言う・話す", zh: "講", jyut: "gong2", ex: "等我同佢講聲。", exjyut: "dang2 ngo5 tung4 keoi5 gong2 seng1", exen: "Let me talk to him about it." },
+  { en: "Know", ja: "知る・知っている", zh: "知", jyut: "zi1", ex: "我唔知呢件事。", exjyut: "ngo5 m4 zi1 ni1 gin6 gin6 si6", exen: "I don't know about this matter." },
+  { en: "Understand / Clear", ja: "分かる・理解する", zh: "明", jyut: "ming4", ex: "我明你意思。", exjyut: "ngo5 ming4 nei5 ji3 si1", exen: "I understand what you mean." },
+  { en: "Think", ja: "思う・考える", zh: "諗", jyut: "nam2", ex: "等我諗下先答你。", exjyut: "dang2 ngo5 nam2 haa5 sin1 daap3 nei5", exen: "Let me think about it before replying to you." },
+  { en: "Want / Need", ja: "欲しい・〜したい", zh: "要", jyut: "jiu3", ex: "客要修改個設計。", exjyut: "haak3 jiu3 sau1 goi2 go3 cit3 gai3", exen: "The client wants to modify the design." },
+  { en: "Like", ja: "好き・好む", zh: "鍾意", jyut: "zung1 ji3", ex: "我好鍾意香港嘅食物。", exjyut: "ngo5 hou2 zung1 ji3 hoeng1 gong2 ge3 sik6 mat6", exen: "I really like Hong Kong food." },
+  { en: "Ask (Question)", ja: "尋ねる・質問する", zh: "問", jyut: "man6", ex: "等我問下老細意見。", exjyut: "dang2 ngo5 man6 haa5 lou5 sai3 ji3 gin3", exen: "Let me ask the boss for his opinion." },
+  { en: "Answer / Reply", ja: "答える", zh: "答", jyut: "daap3", ex: "佢仲未答我幾時出貨。", exjyut: "keoi5 zung6 mei6 daap3 ngo5 gei2 si4 ceot1 fo3", exen: "He hasn't answered me yet when it will ship." },
+  { en: "Forget", ja: "忘れる", zh: "唔記得", jyut: "m4 gei3 dak1", ex: "我唔記得帶部電話。", exjyut: "ngo5 m4 gei3 dak1 daai3 bou6 din6 waa2", exen: "I forgot to bring my phone." },
+  { en: "Remember", ja: "覚えている・思い出す", zh: "記得", jyut: "gei3 dak1", ex: "請你記得聽日開會。", exjyut: "cing2 nei5 gei3 dak1 ting1 jat1 hoi1 wui2", exen: "Please remember to attend the meeting tomorrow." },
 
-{en:"do", zh:"做", jyut:"zou6", ex:"我幫你做。", exjyut:"ngo5 bong1 nei5 zou6", exen:"I'll do it."},
-{en:"make", zh:"整", jyut:"zing2", ex:"我幫你整。", exjyut:"ngo5 bong1 nei5 zing2", exen:"I'll make it."},
-{en:"send", zh:"send", jyut:"send", ex:"我send俾你。", exjyut:"ngo5 send bei2 nei5", exen:"I send to you."},
-{en:"buy", zh:"買", jyut:"maai5", ex:"我想買。", exjyut:"ngo5 soeng2 maai5", exen:"I want to buy."},
-{en:"sell", zh:"賣", jyut:"maai6", ex:"呢個好賣。", exjyut:"ni1 go3 hou2 maai6", exen:"This sells well."},
-{en:"see", zh:"睇", jyut:"tai2", ex:"你睇下。", exjyut:"nei5 tai2 haa5", exen:"Take a look."},
-{en:"give", zh:"俾", jyut:"bei2", ex:"我俾你。", exjyut:"ngo5 bei2 nei5", exen:"I'll give you."},
-{en:"take", zh:"攞", jyut:"lo2", ex:"我攞嚟。", exjyut:"ngo5 lo2 lei4", exen:"I'll bring it."},
-{en:"use", zh:"用", jyut:"jung6", ex:"可以用。", exjyut:"ho2 ji5 jung6", exen:"Can use."},
-{en:"need", zh:"要", jyut:"jiu3", ex:"我哋要。", exjyut:"ngo5 dei6 jiu3", exen:"We need."},
+  // 21-30: 日常の基本動作（持つ・買う・する）
+  { en: "Do / Make", ja: "する・作る・やる", zh: "做", jyut: "zou6", ex: "你而家做緊乜嘢？", exjyut: "nei5 ji4 gaa1 zou6 gan2 mat1 je5?", exen: "What are you doing right now?" },
+  { en: "Take / Get", ja: "取る・持つ・持ってくる", zh: "攞", jyut: "lo2", ex: "幫我攞份文件黎吖。", exjyut: "bong1 ngo5 lo2 fan6 man4 gin2 lai4 aa1", exen: "Please fetch that document for me." },
+  { en: "Buy", ja: "買う", zh: "買", jyut: "maai5", ex: "我想買杯咖啡。", exjyut: "ngo5 soeng2 maai5 bui1 gaa1 fe1", exen: "I'd like to buy a cup of coffee." },
+  { en: "Sell", ja: "売る", zh: "賣", jyut: "maai6", ex: "呢款錶賣得好好。", exjyut: "ni1 fun2 biu1 maai6 dak1 hou2 hou2", exen: "This watch model sells very well." },
+  { en: "Give", ja: "与える・あげる・くれる", zh: "俾", jyut: "bei2", ex: "唔該俾張單我。", exjyut: "m4 goi1 bei2 zoeng1 daan1 ngo5", exen: "Please give me the invoice." },
+  { en: "Look for / Find", ja: "探す・（お釣りを）払う", zh: "搵", jyut: "wan2", ex: "我搵緊工廠嘅聯絡人。", exjyut: "ngo5 wan2 gan2 gung1 cong2 ge3 lyun4 lok3 jan4", exen: "I am looking for the factory contact person." },
+  { en: "Wait", ja: "待つ", zh: "等", jyut: "dang2", ex: "請等我五分鐘。", exjyut: "cing2 dang2 ngo5 ng5 fan1 zung1", exen: "Please wait for me for 5 minutes." },
+  { en: "Use", ja: "使う", zh: "用", jyut: "jung6", ex: "你可以用呢部電腦。", exjyut: "nei5 ho2 ji5 jung6 ni1 bou6 din6 nou5", exen: "You can use this computer." },
+  { en: "Put / Place", ja: "置く・入れる・放す", zh: "放", jyut: "fong3", ex: "將啲貨放喺地。 ", exjyut: "zoeng1 di1 fo3 fong3 hai2 dei6", exen: "Put the goods on the floor." },
+  { en: "Call / Shout", ja: "呼ぶ・叫ぶ・注文する", zh: "叫", jyut: "giu3", ex: "幫我叫架的士唔該。", exjyut: "bong1 ngo5 giu3 gaa1 dik1 si2 m4 goi1", exen: "Please call a taxi for me." },
 
-{en:"want", zh:"想", jyut:"soeng2", ex:"我想要。", exjyut:"ngo5 soeng2 jiu3", exen:"I want."},
-{en:"say", zh:"講", jyut:"gong2", ex:"你講。", exjyut:"nei5 gong2", exen:"You say."},
-{en:"talk", zh:"傾", jyut:"king1", ex:"傾價。", exjyut:"king1 gaa3", exen:"Negotiate."},
-{en:"cut price", zh:"平", jyut:"peng4", ex:"平啲得唔得？", exjyut:"peng4 di1 dak1 m4 dak1", exen:"Cheaper?"},
+  // 31-40: ビジネス・交渉（確認・終了・送金）
+  { en: "Confirm / Check", ja: "確認する", zh: "確認", jyut: "kok1 jin6", ex: "我哋需要確認個數量。", exjyut: "ngo5 dei6 seoi1 jiu3 kok1 jin6 go3 sou3 loeng6", exen: "We need to confirm the quantity." },
+  { en: "Finish / Settle", ja: "（用事を）済ませる・完了する", zh: "搞掂", jyut: "gaau2 dim6", ex: "我已經搞掂個報告。", exjyut: "ngo5 ji5 ging1 gaau2 dim6 go3 bou3 gou3", exen: "I have already finished the report." },
+  { en: "Send", ja: "送る・送信する", zh: "發", jyut: "faat3", ex: "我一陣發電郵俾你。", exjyut: "ngo5 jat1 zan6 faat3 din6 jau4 bei2 nei5", exen: "I'll send you an email in a moment." },
+  { en: "Pay the bill", ja: "お会計をする・精算する", zh: "埋單", jyut: "maai4 daan1", ex: "食飽喇，唔該埋單。", exjyut: "sik6 baau2 laa3, m4 goi1 maai4 daan1", exen: "We are full, bill please." },
+  { en: "Sign", ja: "サインする・契約を結ぶ", zh: "簽", jyut: "cim1", ex: "請喺呢度簽名。", exjyut: "cing2 hai2 ni1 dou6 cim1 meng2", exen: "Please sign here." },
+  { en: "Discuss / Talk over", ja: "話し合う・相談する", zh: "商量", jyut: "soeng1 loeng4", ex: "我需要同團隊商量下。", exjyut: "ngo5 seoi1 jiu3 tung4 tyun4 deoi6 soeng1 loeng4 haa5", exen: "I need to discuss it with the team." },
+  { en: "Urge / Rush", ja: "催促する・急かす", zh: "催", jyut: "ceoi1", ex: "要催下供應商出貨。", exjyut: "jiu3 ceoi1 haa5 gung1 jing3 soeng1 ceot1 fo3", exen: "We need to rush the supplier for shipment." },
+  { en: "Cancel", ja: "キャンセルする・取り消す", zh: "取消", jyut: "ceoi2 siu1", ex: "客想取消呢張訂單。", exjyut: "haak3 soeng2 ceoi2 siu1 ni1 zoeng1 ding6 daan1", exen: "The client wants to cancel this order." },
+  { en: "Change / Modify", ja: "変える・修正する", zh: "改", jyut: "goi2", ex: "個交貨期要改下。", exjyut: "go3 gaau1 fo3 kei4 jiu3 goi2 haa5", exen: "The delivery date needs to be changed." },
+  { en: "Approve / Permit", ja: "承認する・許可する", zh: "批准", jyut: "pai1 zeon2", ex: "老細批准咗呢筆預算。", exjyut: "lou5 sai3 pai1 zeon2 zo2 ni1 bat1 jyu6 syun3", exen: "The boss approved this budget." },
 
-{en:"finish", zh:"搞掂", jyut:"gaau2 dim6", ex:"搞掂咗。", exjyut:"gaau2 dim6 zo2", exen:"Done."},
-{en:"start", zh:"開始", jyut:"hoi1 ci2", ex:"開始咗。", exjyut:"hoi1 ci2 zo2", exen:"Started."},
-{en:"wait", zh:"等", jyut:"dang2", ex:"等陣。", exjyut:"dang2 zan6", exen:"Wait."},
-{en:"come", zh:"嚟", jyut:"lei4", ex:"我嚟。", exjyut:"ngo5 lei4", exen:"I come."},
-{en:"go", zh:"去", jyut:"heoi3", ex:"我去。", exjyut:"ngo5 heoi3", exen:"I go."},
+  // 41-50: 日常のやりとり（手伝う・選ぶ・変える）
+  { en: "Help", ja: "手伝う・助ける", zh: "幫", jyut: "bong1", ex: "你可以幫我手嗎？", exjyut: "nei5 ho2 ji5 bong1 ngo5 sau2 maa3?", exen: "Can you help me out?" },
+  { en: "Choose / Select", ja: "選ぶ", zh: "揀", jyut: "gaan2", ex: "你要揀邊個款式？", exjyut: "nei5 jiu3 gaan2 bin1 go3 fun2 sik1?", exen: "Which style do you want to choose?" },
+  { en: "Exchange / Change", ja: "交換する・（電池などを）換える", zh: "換", jyut: "wun6", ex: "我想換一隻色。", exjyut: "ngo5 soeng2 wun6 jat1 zek3 sik1", exen: "I'd like to exchange it for another color." },
+  { en: "Welcome / Greet", ja: "迎える・歓迎する", zh: "歡迎", jyut: "fun1 jing4", ex: "歡迎你黎到香港！", exjyut: "fun1 jing4 nei5 lai4 dou3 hoeng1 gong2!", exen: "Welcome to Hong Kong!" },
+  { en: "Meet", ja: "会う", zh: "見", jyut: "gin3", ex: "聽日我要見個重要客。", exjyut: "ting1 jat1 ngo5 jiu3 gin3 go3 zung6 jiu3 haak3", exen: "I have to meet an important client tomorrow." },
+  { en: "Leave / Walk away", ja: "離れる・出発する・（場所を）去る", zh: "走", jyut: "zau2", ex: "我差唔多要走喇。", exjyut: "ngo5 caa1 m4 do1 jiu3 zau2 laa3", exen: "I should be leaving soon." },
+  { en: "Start / Open", ja: "始める・開く", zh: "開", jyut: "hoi1", ex: "我哋幾點開會？", exjyut: "ngo5 dei6 gei2 dim2 hoi1 wui2?", exen: "What time do we start the meeting?" },
+  { en: "Close / Shut", ja: "閉める・閉じる", zh: "閂", jyut: "saan1", ex: "唔該幫我閂咗道門。", exjyut: "m4 goi1 bong1 ngo5 saan1 zo2 dou6 mun4", exen: "Please close the door for me." },
+  { en: "Arrive", ja: "到着する・届く", zh: "到", jyut: "dou3", ex: "批貨已經到咗倉庫。", exjyut: "pai1 fo3 ji5 ging1 dou3 zo2 cong1 fu3", exen: "The goods have already arrived at the warehouse." },
+  { en: "Stay", ja: "留まる・滞在する", zh: "留", jyut: "lau4", ex: "佢會喺香港留三日。", exjyut: "keoi5 wui5 hai2 hoeng1 gong2 lau4 saam1 jat1", exen: "He will stay in Hong Kong for three days." },
 
-{en:"check", zh:"睇", jyut:"tai2", ex:"我睇下。", exjyut:"ngo5 tai2 haa5", exen:"I check."},
-{en:"confirm", zh:"確認", jyut:"kok3 jing6", ex:"確認一下。", exjyut:"kok3 jing6 jat1 haa5", exen:"Confirm."},
-{en:"change", zh:"改", jyut:"goi2", ex:"可以改。", exjyut:"ho2 ji5 goi2", exen:"Can change."},
-{en:"fix", zh:"整", jyut:"zing2", ex:"整返好。", exjyut:"zing2 faan1 hou2", exen:"Fix it."},
+  // 51-60: コミュニケーション（教える・紹介・約束）
+  { en: "Teach / Tell", ja: "教える", zh: "教", jyut: "gaau3", ex: "你可以教我廣東話嗎？", exjyut: "nei5 ho2 ji5 gaau3 ngo5 gwong2 dung1 waa2 maa3?", exen: "Can you teach me Cantonese?" },
+  { en: "Introduce", ja: "紹介する", zh: "介紹", jyut: "gaai3 siu3", ex: "等我介紹新同事俾你知。", exjyut: "dang2 ngo5 gaai3 siu3 san1 tung4 si3 bei2 nei5 zi1", exen: "Let me introduce the new colleague to you." },
+  { en: "Promise / Agree", ja: "約束する・引き受ける", zh: "答應", jyut: "daap3 jing3", ex: "佢已經答應咗幫手。", exjyut: "keoi5 ji5 ging1 daap3 jing3 zo2 bong1 sau2", exen: "He has already promised to help." },
+  { en: "Believe / Trust", ja: "信じる", zh: "信", jyut: "seon3", ex: "我信你嘅能力。", exjyut: "ngo5 seon3 nei5 ge3 nang4 lik6", exen: "I trust your ability." },
+  { en: "Worry", ja: "心配する", zh: "擔心", jyut: "daam1 sam1", ex: "唔使擔心，交俾我。", exjyut: "m4 sai2 daam1 sam1, gaau1 bei2 ngo5", exen: "Don't worry, leave it to me." },
+  { en: "Fear / Afraid", ja: "怖がる・〜を恐れる", zh: "驚", jyut: "geng1", ex: "我驚時間唔夠用。", exjyut: "ngo5 geng1 si4 gaan1 m4 gau3 jung6", exen: "I'm afraid there won't be enough time." },
+  { en: "Laugh / Smile", ja: "笑う", zh: "笑", jyut: "siu3", ex: "佢見到個報告就笑。 ", exjyut: "keoi5 gin3 dou2 go3 bou3 gou3 zau6 siu3", exen: "He smiled when he saw the report." },
+  { en: "Cry", ja: "泣く", zh: "喊", jyut: "haam3", ex: "個小朋友喺度喊。", exjyut: "go3 siu2 pang4 jau5 hai2 dou6 haam3", exen: "The child is crying over there." },
+  { en: "Complain", ja: "クレームをつける・不満を言う", zh: "投訴", jyut: "tau4 sou3", ex: "個客投訴話服務慢。", exjyut: "go3 haak3 tau4 sou3 waa6 fuk6 mou6 maan6", exen: "The client complained that the service was slow." },
+  { en: "Appreciate / Thank", ja: "感謝する・ありがとう", zh: "多謝", jyut: "do1 ze6", ex: "多謝你嘅幫忙。", exjyut: "do1 ze6 nei5 ge3 bong1 mong4", exen: "Thank you for your help." },
 
-{en:"call", zh:"打", jyut:"daa2", ex:"我打俾你。", exjyut:"ngo5 daa2 bei2 nei5", exen:"I call you."},
-{en:"reply", zh:"覆", jyut:"fuk6", ex:"我會覆。", exjyut:"ngo5 wui5 fuk6", exen:"I reply."},
-{en:"know", zh:"知", jyut:"zi1", ex:"我知。", exjyut:"ngo5 zi1", exen:"I know."},
-{en:"understand", zh:"明", jyut:"ming4", ex:"我明。", exjyut:"ngo5 ming4", exen:"I understand."},
-{en:"ask", zh:"問", jyut:"man6", ex:"我問。", exjyut:"ngo5 man6", exen:"I ask."},
+  // 61-70: 体調・状態（疲れる・病気になる・寝る）
+  { en: "Sleep", ja: "寝る", zh: "訓", jyut: "fan3", ex: "我好攰，想去訓教。", exjyut: "ngo5 hou2 gui6, soeng2 heoi3 fan3 gaau3", exen: "I'm very tired, I want to go to sleep." },
+  { en: "Wake up / Get up", ja: "起きる", zh: "起身", jyut: "hei2 san1", ex: "我每日七點起身。", exjyut: "ngo5 mui5 jat1 cat1 dim2 hei2 san1", exen: "I get up at 7 o'clock every day." },
+  { en: "Tired", ja: "疲れる（動詞・形容詞的扱い）", zh: "攰", jyut: "gui6", ex: "做咗全日好攰。", exjyut: "zou6 zo2 cyun4 jat1 hou2 gui6", exen: "I am exhausted after working all day." },
+  { en: "Sick / Pain", ja: "病気になる・痛む", zh: "痛", jyut: "tung3", ex: "我個頭好痛。", exjyut: "ngo5 go3 tau4 hou2 tung3", exen: "I have a bad headache." },
+  { en: "Rest", ja: "休憩する・休む", zh: "休息", jyut: "jau1 sik1", ex: "等我地休息十分鐘。", exjyut: "dang2 ngo5 dei6 jau1 sik1 sap6 fan1 zung1", exen: "Let's rest for 10 minutes." },
+  { en: "Bathe / Shower", ja: "お風呂に入る・シャワーを浴びる", zh: "沖涼", jyut: "cung1 loeng4", ex: "等我沖個涼先出去。", exjyut: "dang2 ngo5 cung1 go3 loeng4 sin1 ceot1 heoi3", exen: "Let me take a shower before heading out." },
+  { en: "Dress / Wear", ja: "着る・履く", zh: "衫", jyut: "coek3", ex: "今日開會要著西裝。", exjyut: "jam1 jat1 hoi1 wui2 jiu3 coek3 sai1 zong1", exen: "You need to wear a suit for today's meeting." },
+  { en: "Wash", ja: "洗う", zh: "洗", jyut: "sai2", ex: "食飯前要洗手。", exjyut: "sik6 faan1 cin4 jiu3 sai2 sau2", exen: "You need to wash your hands before eating." },
+  { en: "Clean", ja: "掃除する・きれいにする", zh: "抹", jyut: "maat3", ex: "幫我抹下張檯唔該。", exjyut: "bong1 ngo5 maat3 haa5 zoeng1 toi2 m4 goi1", exen: "Please wipe down the table for me." },
+  { en: "Prepare", ja: "準備する", zh: "準備", jyut: "zeon2 bei6", ex: "我哋要準備聽日嘅資料。", exjyut: "ngo5 dei6 jiu3 zeon2 bei6 ting1 jat1 ge3 zi1 liu2", exen: "We need to prepare the data for tomorrow." },
 
-{en:"agree", zh:"同意", jyut:"tung4 ji3", ex:"我同意。", exjyut:"ngo5 tung4 ji3", exen:"Agree."},
-{en:"disagree", zh:"唔同意", jyut:"m4 tung4 ji3", ex:"我唔同意。", exjyut:"m4 tung4 ji3", exen:"Disagree."},
+  // 71-80: 生産・現場（作る・修理・運ぶ）
+  { en: "Repair / Fix", ja: "修理する・メンテナンスする", zh: "維修", jyut: "wai4 sau1", ex: "部機器壞咗要維修。", exjyut: "bou6 gei1 hei3 waai6 zo2 jiu3 wai4 sau1", exen: "The machine is broken and needs to be repaired." },
+  { en: "Check / Inspect", ja: "検品する・検査する", zh: "驗貨", jyut: "jim6 fo3", ex: "我下個禮拜去工廠驗貨。", exjyut: "ngo5 haa5 go3 lai5 baai3 heoi3 gung1 cong2 jim6 fo3", exen: "I am going to the factory for inspection next week." },
+  { en: "Assemble", ja: "組み立てる", zh: "組裝", jyut: "zou2 zong1", ex: "呢批手錶喺香港組裝。", exjyut: "ni1 pai1 sau2 biu1 hai2 hoeng1 gong2 zou2 zong1", exen: "This batch of watches is assembled in Hong Kong." },
+  { en: "Produce / Manufacture", ja: "生産する・作る", zh: "製造", jyut: "zai3 zou6", ex: "呢個零件係日本製造嘅。", exjyut: "ni1 go3 ling4 gin2 hai6 jat6 bun2 zai3 zou6 ge3", exen: "This part is manufactured in Japan." },
+  { en: "Move / Carry", ja: "運ぶ・移動させる", zh: "搬", jyut: "bun1", ex: "幫我搬呢個箱入去。", exjyut: "bong1 ngo5 bun1 ni1 go3 soeng1 jap6 heoi3", exen: "Help me carry this box inside." },
+  { en: "Pack / Package", ja: "梱包する・（食べ残しを）持ち帰る", zh: "打包", jyut: "daa1 baau1", ex: "唔該幫我打包呢啲貨。", exjyut: "m4 goi1 bong1 ngo5 daa1 baau1 ni1 di1 fo3", exen: "Please pack up these goods for me." },
+  { en: "Print", ja: "印刷する", zh: "印", jyut: "jan3", ex: "幫我印五份出黎。", exjyut: "bong1 ngo5 jan3 ng5 fan6 ceot1 lai4", exen: "Please print 5 copies for me." },
+  { en: "Cut", ja: "切る", zh: "剪", jyut: "zin2", ex: "條條錶帶要剪短少少。", exjyut: "ni1 tiu4 biu1 daai2 jiu3 zin2 dyun2 siu2 siu2", exen: "This strap needs to be cut a bit shorter." },
+  { en: "Open a mold", ja: "金型を開発する（型を開ける）", zh: "開模", jyut: "hoi1 mou4", ex: "開模需要幾多日？", exjyut: "hoi1 mou4 seoi1 jiu3 gei2 do1 jat1?", exen: "How many days does it take to open the mold?" },
+  { en: "Test / Try out", ja: "テストする・試す", zh: "測試", jyut: "caak1 si3", ex: "我哋測試過防水功能。", exjyut: "ngo5 dei6 caak1 si3 gwo3 fong4 seoi2 gung1 nang4", exen: "We have tested the waterproof functionality." },
 
-{en:"open", zh:"開", jyut:"hoi1", ex:"開機。", exjyut:"hoi1 gei1", exen:"Open."},
-{en:"close", zh:"關", jyut:"gwaan1", ex:"關咗。", exjyut:"gwaan1 zo2", exen:"Close."},
+  // 81-90: 日常のデバイス操作・移動（押す・開く・乗る）
+  { en: "Press / Tap", ja: "（ボタンなどを）押す・タップする", zh: "撳", jyut: "gam6", ex: "撳呢個掣就可以開機。", exjyut: "gam6 ni1 go3 zai3 zau6 ho2 ji5 hoi1 gei1", exen: "Press this button to turn on the machine." },
+  { en: "Swipe / Scan (Card)", ja: "（カードを）かざす・スキャンする", zh: "嘟", jyut: "dut1", ex: "用八達通嘟一嘟就得喇。", exjyut: "jung6 baat3 daat6 tung1 dut1 jat1 dut1 zau6 dak1 laa3", exen: "Just scan it with your Octopus card." },
+  { en: "Take (Transport)", ja: "（乗り物に）乗る", zh: "搭", jyut: "daap3", ex: "我搭地鐵去中環。", exjyut: "ngo5 daap3 dei6 tit3 heoi3 zung1 waan4", exen: "I'll take the MTR to Central." },
+  { en: "Drive", ja: "運転する", zh: "揸車", jyut: "zaa1 ce1", ex: "佢今日揸車返工。", exjyut: "keoi5 gam1 jat1 zaa1 ce1 faan1 gung1", exen: "He drove to work today." },
+  { en: "Wait / Queue", ja: "列に並ぶ", zh: "排隊", jyut: "paai4 deoi2", ex: "好多人喺度排隊買飛。", exjyut: "hou2 do1 jan4 hai2 dou6 paai4 deoi2 maai5 fei1", exen: "A lot of people are queuing to buy tickets." },
+  { en: "Rent", ja: "レンタルする・借りる・（部屋を）借りる", zh: "租", jyut: "zou1", ex: "我想喺觀塘租個寫字樓。", exjyut: "ngo5 soeng2 hai2 gun1 tong4 zou1 go3 se2 zi6 lau4", exen: "I want to rent an office in Kwun Tong." },
+  { en: "Lost / Lose", ja: "失う・無くす", zh: "唔見咗", jyut: "m4 gin3 zo2", ex: "我唔見咗張合約。", exjyut: "ngo5 m4 gin3 zo2 zoeng1 hap6 tung4", exen: "I have lost the contract." },
+  { en: "Borrow", ja: "（人から）借りる", zh: "借", jyut: "zeok3", ex: "可唔可以借支筆俾我？", exjyut: "ho2 m4 ho2 ji5 zeok3 zi1 bat1 bei2 ngo5?", exen: "Can I borrow a pen from you?" },
+  { en: "Return (Object)", ja: "（借りたものを）返す", zh: "還", jyut: "waan4", ex: "聽日還返本書俾你。", exjyut: "ting1 jat1 waan4 faan1 bun2 syu1 bei2 nei5", exen: "I'll return the book to you tomorrow." },
+  { en: "Arrive at / Pass", ja: "（期日に）間に合う・追いつく", zh: "趕得切", jyut: "gon2 dak1 cit3", ex: "個貨期我哋趕得切。", exjyut: "go3 fo3 kei4 ngo5 dei6 gon2 dak1 cit3", exen: "We can make it in time for the delivery date." },
 
-{en:"wait for", zh:"等", jyut:"dang2", ex:"等你。", exjyut:"dang2 nei5", exen:"Wait for you."},
-{en:"arrive", zh:"到", jyut:"dou3", ex:"我到咗。", exjyut:"dou3 zo2", exen:"Arrived."},
-
-{en:"leave", zh:"走", jyut:"zau2", ex:"我走先。", exjyut:"ngo5 zau2 sin1", exen:"I go first."},
-
-{en:"bring", zh:"帶", jyut:"daai3", ex:"我帶嚟。", exjyut:"ngo5 daai3 lei4", exen:"Bring."},
-{en:"take away", zh:"拎走", jyut:"ling1 zau2", ex:"拎走佢。", exjyut:"ling1 zau2 keoi5", exen:"Take away."},
-
-{en:"help", zh:"幫", jyut:"bong1", ex:"我幫你。", exjyut:"ngo5 bong1 nei5", exen:"Help."},
-{en:"support", zh:"支持", jyut:"zi1 ci4", ex:"支持你。", exjyut:"zi1 ci4 nei5", exen:"Support."},
-
-{en:"follow", zh:"跟", jyut:"gan1", ex:"跟我嚟。", exjyut:"gan1 ngo5 lei4", exen:"Follow me."},
-{en:"return", zh:"返", jyut:"faan1", ex:"我返嚟。", exjyut:"ngo5 faan1 lei4", exen:"Return."},
-
-{en:"work", zh:"做嘢", jyut:"zou6 je5", ex:"我做緊嘢。", exjyut:"ngo5 zou6 gan2 je5", exen:"Working."},
-
-{en:"finish work", zh:"收工", jyut:"sau1 gung1", ex:"我收工。", exjyut:"ngo5 sau1 gung1", exen:"Off work."},
-
-{en:"pay", zh:"畀錢", jyut:"bei2 cin2", ex:"要畀錢。", exjyut:"jiu3 bei2 cin2", exen:"Pay money."},
-
-{en:"earn", zh:"賺", jyut:"zaan6", ex:"賺錢。", exjyut:"zaan6 cin2", exen:"Earn."},
-
-{en:"lose", zh:"輸", jyut:"syu1", ex:"輸咗。", exjyut:"syu1 zo2", exen:"Lost."},
-
-{en:"win", zh:"贏", jyut:"jeng4", ex:"贏咗。", exjyut:"jeng4 zo2", exen:"Won."},
-
-{en:"check stock", zh:"睇貨", jyut:"tai2 fo3", ex:"我睇貨。", exjyut:"ngo5 tai2 fo3", exen:"Check stock."},
-
-{en:"ship", zh:"出貨", jyut:"ceot1 fo3", ex:"今日出貨。", exjyut:"gam1 jat6 ceot1 fo3", exen:"Ship today."},
-
-{en:"receive", zh:"收", jyut:"sau1", ex:"我收到。", exjyut:"ngo5 sau1 dou2", exen:"Received."},
-
-{en:"inspect", zh:"驗", jyut:"jim6", ex:"要驗貨。", exjyut:"jiu3 jim6 fo3", exen:"Inspect."},
-
-{en:"pack", zh:"包裝", jyut:"baau1 zong1", ex:"包裝好。", exjyut:"baau1 zong1 hou2", exen:"Pack."},
-
-{en:"deliver", zh:"送", jyut:"sung3", ex:"送過去。", exjyut:"sung3 gwo3 heoi3", exen:"Deliver."},
-
-{en:"export", zh:"出口", jyut:"ceot1 hau2", ex:"出口。", exjyut:"ceot1 hau2", exen:"Export."},
-
-{en:"import", zh:"入口", jyut:"jap6 hau2", ex:"入口。", exjyut:"jap6 hau2", exen:"Import."},
-
-{en:"negotiate", zh:"傾", jyut:"king1", ex:"傾價。", exjyut:"king1 gaa3", exen:"Negotiate."},
-
-{en:"discuss", zh:"傾", jyut:"king1", ex:"傾吓。", exjyut:"king1 haa5", exen:"Discuss."},
-
-{en:"check price", zh:"睇價", jyut:"tai2 gaa3", ex:"睇價先。", exjyut:"tai2 gaa3 sin1", exen:"Check price."},
-
-{en:"reduce price", zh:"減價", jyut:"gaam2 gaa3", ex:"減價。", exjyut:"gaam2 gaa3", exen:"Reduce price."},
-
-{en:"increase price", zh:"加價", jyut:"gaa1 gaa3", ex:"加價。", exjyut:"gaa1 gaa3", exen:"Increase price."},
-
-{en:"book", zh:"訂", jyut:"ding6", ex:"訂貨。", exjyut:"ding6 fo3", exen:"Order goods."},
-
-{en:"cancel", zh:"取消", jyut:"ceoi2 siu1", ex:"取消。", exjyut:"ceoi2 siu1", exen:"Cancel."},
-
-{en:"prepare", zh:"準備", jyut:"zeon2 bei6", ex:"準備好。", exjyut:"zeon2 bei6 hou2", exen:"Prepare."},
-
-{en:"finish preparing", zh:"準備好", jyut:"zeon2 bei6 hou2", ex:"準備好咗。", exjyut:"zeon2 bei6 hou2 zo2", exen:"Ready."},
-
-{en:"wait reply", zh:"等覆", jyut:"dang2 fuk6", ex:"等你覆。", exjyut:"dang2 nei5 fuk6", exen:"Wait reply."},
-
-{en:"follow up", zh:"跟進", jyut:"gan1 zeon3", ex:"跟進。", exjyut:"gan1 zeon3", exen:"Follow up."}
-
+  // 91-100: その他の重要動詞・感情・評価
+  { en: "Live / Reside", ja: "住む", zh: "住", jyut: "zyu6", ex: "你住喺邊個區呀？", exjyut: "nei5 zyu6 hai2 bin1 go3 keoi1 aa3?", exen: "Which district do you live in?" },
+  { en: "Work", ja: "働く・仕事をする", zh: "返工", jyut: "faan1 gung1", ex: "我聽日九點返工。", exjyut: "ngo5 ting1 jat1 gau2 dim2 faan1 gung1", exen: "I go to work at 9 o'clock tomorrow." },
+  { en: "Finish work / Leave office", ja: "退勤する・仕事が終わる", zh: "放工", jyut: "fong3 gung1", ex: "放工一齊去飲杯嘢？", exjyut: "fong3 gung1 jat1 cai4 heoi3 jam2 bui1 je5?", exen: "Shall we grab a drink together after work?" },
+  { en: "Study / Learn", ja: "勉強する・学ぶ", zh: "讀書", jyut: "duk6 syu1", ex: "佢喺英國讀書。", exjyut: "keoi5 hai2 jing1 gwok1 duk6 syu1", exen: "He is studying in the UK." },
+  { en: "Travel", ja: "旅行する", zh: "去旅行", jyut: "heoi3 leoi5 hang4", ex: "我下個月去日本去旅行。", exjyut: "ngo5 haa5 go3 jyut6 heoi3 jat6 bun2 heoi3 leoi5 hang4", exen: "I am going to Japan for a trip next month." },
+  { en: "Win", ja: "勝つ・儲かる", zh: "贏", jyut: "jeng4", ex: "呢次商談我哋贏咗。", exjyut: "ni1 ci3 soeng1 loeng4 ngo5 dei6 jeng4 zo2", exen: "We won this business negotiation." },
+  { en: "Lose (Game/Money)", ja: "負ける・損をする", zh: "輸", jyut: "syu1", ex: "今次真係輸咗好多成本。", exjyut: "gam1 ci3 zan1 hai6 syu1 zo2 hou2 do1 sing4 bun2", exen: "We really lost a lot of cost this time." },
+  { en: "Agree", ja: "賛成する・同意する", zh: "同意", jyut: "tung4 ji3", ex: "我完全同意你嘅諗法。", exjyut: "ngo5 jyun4 cyun1 tung4 ji3 nei5 ge3 nam2 faat3", exen: "I completely agree with your thoughts." },
+  { en: "Oppose / Disagree", ja: "反対する", zh: "反對", jyut: "faan2 deoi3", ex: "冇人反對呢個提議。", exjyut: "mou5 jan4 faan2 deoi3 ni1 go3 tai4 ji5", exen: "No one opposes this proposal." },
+  { en: "Celebrate", ja: "お祝いする", zh: "慶祝", jyut: "hing3 zuk1", ex: "今晚一齊食飯慶祝啦。", exjyut: "gam1 maan5 jat1 cai4 sik6 faan1 hing3 zuk1 laa1", exen: "Let's have dinner together tonight to celebrate." }
 ];
 
+let current, correctIndex;
+let hasAnswered = false;
+let solvedCount = 0;
+let currentMode = 'en';
 
-// 100語まで拡張（重複防止ロジックあり）
-while(words.length < 100){
-  let w = words[words.length % 30];
-  words.push({...w, en:w.en + " " + words.length});
+function shuffle(arr) {
+  return arr.sort(() => Math.random() - 0.5);
 }
 
-let current, correctIndex;
+function setMode(mode) {
+  if (hasAnswered) return;
+  currentMode = mode;
+  document.getElementById('mode-en').classList.toggle('active', mode === 'en');
+  document.getElementById('mode-ja').classList.toggle('active', mode === 'ja');
+  
+  if (current) {
+    document.getElementById("question").innerText = currentMode === 'en' ? current.en : current.ja;
+  }
+}
 
-function shuffle(arr){ return arr.sort(()=>Math.random()-0.5); }
+function newQuestion() {
+  hasAnswered = false;
+  document.getElementById("result-wrapper").classList.remove("show");
+  document.getElementById("next-btn").style.display = "none";
 
-function newQuestion(){
+  const correct = words[Math.floor(Math.random() * words.length)];
+  current = correct;
 
-  const correct = words[Math.floor(Math.random()*words.length)];
+  let options = [correct];
+  let usedZh = new Set([correct.zh]);
 
-  let usedZh = new Set();
-  let usedEn = new Set();
-  let options = [];
-
-  options.push(correct);
-  usedZh.add(correct.zh);
-  usedEn.add(correct.en);
-
-  while(options.length < 4){
-    let rand = words[Math.floor(Math.random()*words.length)];
-
-    if(!usedZh.has(rand.zh) && !usedEn.has(rand.en)){
+  while (options.length < 4) {
+    let rand = words[Math.floor(Math.random() * words.length)];
+    if (!usedZh.has(rand.zh)) {
       options.push(rand);
       usedZh.add(rand.zh);
-      usedEn.add(rand.en);
     }
   }
 
   options = shuffle(options);
   correctIndex = options.indexOf(correct);
 
-  document.getElementById("question").innerText = correct.en;
+  document.getElementById("question").innerText = currentMode === 'en' ? correct.en : current.ja;
+  document.getElementById("question-hint").innerText = currentMode === 'en' ? "WHAT IS THE CANTONESE FOR THIS?" : "この日本語を広東語（香港口語）にすると？";
 
-  let html="";
-  options.forEach((o,i)=>{
-    html += `<div class="option" onclick="check(${i})">${o.zh}</div>`;
+  let html = "";
+  options.forEach((o, i) => {
+    html += `<button class="option" id="opt-${i}" onclick="check(${i})">${o.zh}</button>`;
   });
-
   document.getElementById("options").innerHTML = html;
-  document.getElementById("result").innerHTML = "";
-
-  current = correct;
 }
 
-function check(i){
-  let opts=document.getElementsByClassName("option");
+function check(selectedIndex) {
+  if (hasAnswered) return;
+  hasAnswered = true;
 
-  if(i === correctIndex){
-    opts[i].classList.add("correct");
-  }else{
-    opts[i].classList.add("wrong");
+  solvedCount++;
+  document.getElementById("progress-count").innerText = solvedCount;
+
+  let opts = document.getElementsByClassName("option");
+  for (let i = 0; i < opts.length; i++) {
+    opts[i].classList.add("disabled");
+  }
+
+  if (selectedIndex === correctIndex) {
+    opts[selectedIndex].classList.add("correct");
+  } else {
+    opts[selectedIndex].classList.add("wrong");
     opts[correctIndex].classList.add("correct");
   }
 
   showAnswer();
+  document.getElementById("next-btn").style.display = "block";
 }
 
-function showAnswer(){
-  document.getElementById("result").innerHTML =
-  `<p>✅ ${current.zh}<br><span class="jp">${current.jyut}</span></p>
-   <p>${current.ex}<br><span class="jp">${current.exjyut}</span></p>
-   <p class="en">${current.exen}</p>
-   <button onclick="speak()">🔊 音声</button>`;
+function showAnswer() {
+  const resultBox = document.getElementById("result");
+  resultBox.innerHTML = `
+    <div class="result-header">
+      <div class="result-title">${current.zh}</div>
+      <div class="jyutping">${current.jyut}</div>
+    </div>
+    <div style="font-size:13px; margin-bottom:12px; color:var(--text-sub)">
+      意味: <strong>${current.ja}</strong> (${current.en})
+    </div>
+    <div class="example-box">
+      <b style="color:var(--primary); font-size:12px; display:block; margin-bottom:4px;">💬 香港日常会話例</b>
+      <span style="font-size:15px; font-weight:600;">${current.ex}</span>
+      <small style="color:#666; display:block; margin-top:2px;">${current.exjyut}</small>
+      <div style="border-top:1px dashed #ccc; margin-top:8px; padding-top:6px; font-size:12px; color:#333;">
+        💡 訳: ${current.exen}
+      </div>
+    </div>
+    <button class="btn-audio" onclick="speak()">🔊 音声を聞く</button>
+  `;
+  
+  document.getElementById("result-wrapper").classList.add("show");
 }
 
-function speak(){
+function speak() {
   let u1 = new SpeechSynthesisUtterance(current.zh);
-  u1.lang="zh-HK";
+  u1.lang = "zh-HK";
+  u1.rate = 0.85;
 
   let u2 = new SpeechSynthesisUtterance(current.ex);
-  u2.lang="zh-HK";
+  u2.lang = "zh-HK";
+  u2.rate = 0.85;
 
   speechSynthesis.cancel();
   speechSynthesis.speak(u1);
-  speechSynthesis.speak(u2);
+  
+  setTimeout(() => {
+    speechSynthesis.speak(u2);
+  }, 400);
 }
 
-function nextQuestion(){
+function nextQuestion() {
   newQuestion();
 }
 
 newQuestion();
-
 </script>
 
 </body>
